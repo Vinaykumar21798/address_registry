@@ -1,4 +1,3 @@
-# Trigger database initialization reload
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -65,7 +64,7 @@ class DuplicateResolveRequest(BaseModel):
 app = FastAPI(
     title="Address Registry System"
 )
-# Mount static files with absolute path
+
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
@@ -116,7 +115,7 @@ def get_stats(
     total_docs = get_total_documents(db)
     unique_addrs = get_unique_addresses(db)
     
-    # Query duplicate_files_rejected count from rejected_duplicates table
+    
     from sqlalchemy import text
     try:
         dup_files_rejected = db.execute(text("SELECT COUNT(*) FROM rejected_duplicates")).scalar() or 0
@@ -368,7 +367,6 @@ async def upload_file(
             logger.warning(
                 f"Duplicate file rejected: {file.filename}"
             )
-            # Track duplicate file rejection in database
             db.execute(
                 text("INSERT OR REPLACE INTO rejected_duplicates (sha256) VALUES (:sha256)"),
                 {"sha256": file_hash}
@@ -383,7 +381,7 @@ async def upload_file(
                 }
             )
 
-        # 2. Extract text and validate BEFORE creating document record to avoid double insertions or processed status on failures
+        
         try:
             pdf_text = extract_text_from_pdf(content)
             if not pdf_text.strip():
@@ -410,7 +408,6 @@ async def upload_file(
                 logger.warning(
                     f"Content duplicate detected: {file.filename}"
                 )
-                # Track content duplicate file rejection in database
                 db.execute(
                     text("INSERT OR REPLACE INTO rejected_duplicates (sha256) VALUES (:sha256)"),
                     {"sha256": file_hash}
@@ -434,10 +431,10 @@ async def upload_file(
                 )
 
         except HTTPException:
-            # Re-raise standard HTTPExceptions (like Content duplicate 409) so they don't get caught as normal failures
+            
             raise
         except Exception as e:
-            # Capture failure correctly and create a single failed document record
+            
             document = create_document(
                 db=db,
                 filename=file.filename,
@@ -455,7 +452,6 @@ async def upload_file(
                 "reason": str(e)
             }
 
-        # 3. Create document record with status "processed" and save content_hash
         document = create_document(
             db=db,
             filename=file.filename,
@@ -582,7 +578,6 @@ async def upload_file(
         logger.error(
             f"Upload failed: {file.filename} - {str(e)}"
         )
-        # Fallback failed document record
         document = create_document(
             db=db,
             filename=file.filename,
@@ -603,7 +598,6 @@ def export_csv(
     zip_code: str = None,
     db: Session = Depends(get_db)
 ):
-    """Export addresses as CSV, supporting the same filters as /addresses."""
     addresses = get_export_addresses(
         db,
         search=search,

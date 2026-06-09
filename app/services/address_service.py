@@ -53,7 +53,6 @@ def normalize_address(raw_address: str) -> str:
 
 
 def apply_usps_abbreviations(text: str) -> str:
-    """Apply USPS standard abbreviations to address text."""
     if not text:
         return text
     

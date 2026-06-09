@@ -28,7 +28,6 @@ SessionLocal = sessionmaker(
 def init_db():
     Base.metadata.create_all(bind=engine)
     
-    # Enable FTS5 virtual table and triggers to sync full-text index
     with engine.begin() as conn:
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS rejected_duplicates (
@@ -57,7 +56,6 @@ def init_db():
                 UPDATE addresses_fts SET raw_text = new.raw_text WHERE id = old.id;
             END;
         """))
-        # Populate FTS5 table with existing records
         conn.execute(text("""
             INSERT INTO addresses_fts(id, raw_text)
             SELECT id, raw_text FROM addresses

@@ -7,7 +7,6 @@ def run_test():
     cur.execute("INSERT INTO t(x) VALUES ('123 Main Street');")
     cur.execute("INSERT INTO t(x) VALUES ('456 Main Ave');")
     
-    # Try different search patterns
     patterns = [
         "Main* Stre*",
         "Main Stre*",
