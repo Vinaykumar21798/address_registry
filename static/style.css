@@ -1,0 +1,12 @@
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.container {
+    max-width: 960px;
+}
+
+.card {
+    margin-bottom: 20px;
+}
