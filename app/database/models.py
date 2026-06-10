@@ -96,6 +96,12 @@ class DuplicateCandidate(Base):
         default="pending"
     )
 
+    recommendation = Column(
+        String,
+        default="manual_review",
+        nullable=True
+    )
+
     address1 = relationship(
         "Address",
         foreign_keys=[address1_id],

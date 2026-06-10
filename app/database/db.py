@@ -61,6 +61,15 @@ def init_db():
             SELECT id, raw_text FROM addresses
             WHERE id NOT IN (SELECT id FROM addresses_fts);
         """))
+        
+        # Migration: check and add recommendation column to duplicate_candidates
+        try:
+            cursor = conn.execute(text("PRAGMA table_info(duplicate_candidates);"))
+            columns = [row[1] for row in cursor.fetchall()]
+            if "recommendation" not in columns:
+                conn.execute(text("ALTER TABLE duplicate_candidates ADD COLUMN recommendation TEXT DEFAULT 'manual_review';"))
+        except Exception as e:
+            pass
 
 
 def get_db():
@@ -301,7 +310,8 @@ def create_duplicate_candidate(
     db,
     address1_id,
     address2_id,
-    score
+    score,
+    recommendation="manual_review"
 ):
     existing = (
         db.query(DuplicateCandidate)
@@ -313,13 +323,18 @@ def create_duplicate_candidate(
     )
 
     if existing:
+        if existing.recommendation == "manual_review" and recommendation != "manual_review":
+            existing.recommendation = recommendation
+            db.commit()
+            db.refresh(existing)
         return existing
 
     candidate = DuplicateCandidate(
         address1_id=address1_id,
         address2_id=address2_id,
         score=score,
-        status="pending"
+        status="pending",
+        recommendation=recommendation
     )
 
     db.add(candidate)

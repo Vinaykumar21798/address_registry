@@ -20,6 +20,9 @@ from app.services.address_service import (
 from app.services.duplicate_detector import (
     calculate_similarity
 )
+from app.services.recommendation_service import (
+    determine_recommendation
+)
 
 from app.database.db import (
     init_db,
@@ -271,7 +274,8 @@ def get_duplicates(
             "address1_text": address1.normalized if address1 else "",
             "address2_text": address2.normalized if address2 else "",
             "score": candidate.score,
-            "status": candidate.status
+            "status": candidate.status,
+            "recommendation": candidate.recommendation
         })
     return result
 @app.patch("/addresses/{address_id}")
@@ -538,11 +542,13 @@ async def upload_file(
 
                 if score >= 90:
 
+                    recommendation = determine_recommendation(existing, address)
                     create_duplicate_candidate(
                         db=db,
                         address1_id=existing.id,
                         address2_id=address.id,
-                        score=int(score)
+                        score=int(score),
+                        recommendation=recommendation
                     )
 
                     logger.info(
