@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+requests
+usaddress
+rapidfuzz
+PyMuPDF
+python-multipart
